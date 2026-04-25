@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Register | Edu2Job</title>
+
+<style>
+*{
+  box-sizing: border-box;
+}
+
+body{
+  font-family: 'Poppins', sans-serif;
+  /* ✅ login-blue + soft violet mix */
+  background: linear-gradient(135deg, #6aa8ff, #d9b2ff);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+/* CARD */
+.register-box{
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 40px 35px;
+  width: 360px;
+  text-align: center;
+  color: #2d2a45;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+}
+
+h2{
+  font-size: 24px;
+  margin-bottom: 6px;
+  color: #2c2a4a;
+}
+
+p{
+  color: #4b4b72;
+  font-size: 14px;
+}
+
+/* INPUT GROUP */
+.input-group{
+  position: relative;
+  margin: 14px 0;
+  width: 100%;
+}
+
+.input-group input{
+  width: 100%;
+  padding: 10px 38px 10px 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+/* ICON */
+.input-group span{
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* BUTTON */
+button{
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  /* ✅ login button vibe but violet-tinted */
+  background: linear-gradient(45deg, #6c63ff, #b983ff);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 5px;
+}
+
+button:hover{
+  transform: translateY(-2px);
+  background: linear-gradient(45deg, #b983ff, #6c63ff);
+}
+
+a{
+  color: #6c63ff;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.error{
+  color: #c0395c;
+  margin-top: 10px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="register-box">
+
+  <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+       width="70" alt="register">
+
+  <h2>Create Account</h2>
+  <p>Register to start your journey</p>
+
+  <form id="registerForm">
+
+    <div class="input-group">
+      <input id="username" type="text" placeholder="Username" required>
+      <span>👤</span>
+    </div>
+
+    <div class="input-group">
+      <input id="email" type="email" placeholder="Email" required>
+      <span>📧</span>
+    </div>
+
+    <div class="input-group">
+      <input id="password" type="password" placeholder="Password" required>
+      <span>🔒</span>
+    </div>
+
+    <div class="input-group">
+      <input id="confirm" type="password" placeholder="Confirm Password" required>
+      <span>✅</span>
+    </div>
+
+    <button type="submit">Register</button>
+
+    <div class="error" id="msg"></div>
+  </form>
+
+  <p style="margin-top:15px;">
+    Already have an account?
+    <a href="login.html">Login</a>
+  </p>
+
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000/api/";
+
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("username").value.trim();
+  const email    = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const confirm  = document.getElementById("confirm").value;
+  const msg      = document.getElementById("msg");
+
+  msg.innerText = "";
+
+  if(password.length < 8)
+    return msg.innerText = "⚠️ Password must be at least 8 characters.";
+
+  if(!/[A-Z]/.test(password))
+    return msg.innerText = "⚠️ Password must contain a CAPITAL letter.";
+
+  if(!/[a-z]/.test(password))
+    return msg.innerText = "⚠️ Password must contain a small letter.";
+
+  if(!/[0-9]/.test(password))
+    return msg.innerText = "⚠️ Password must contain a number.";
+
+  if(password !== confirm)
+    return msg.innerText = "⚠️ Passwords do not match.";
+
+  try{
+    const res = await fetch(API + "register/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password })
+    });
+
+    const data = await res.json();
+
+    if(res.ok){
+      alert("✅ Registration Successful");
+      window.location.href = "login.html";
+    }else{
+      msg.innerText = data.username || data.email || "⚠️ Registration failed.";
+    }
+
+  }catch{
+    msg.innerText = "⚠️ Server not reachable.";
+  }
+});
+</script>
+
+</body>
+</html>

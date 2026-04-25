@@ -1,0 +1,9 @@
+Dataset: ./JobRole.xlsx
+Original shape: (2100, 9)
+Numeric cols: ['CGPA', 'Years of Experience']
+Categorical cols: ['Degree', 'Major', 'Specialization', 'Certification', 'Preferred Industry']
+Classes (15): ['Academic Instructor/Lecturer', 'Business Analyst', 'Cloud Engineer', 'Content Strategist', 'Cyber Security Analyst', 'Data Analyst', 'Data Scientist', 'Financial Analyst', 'Graphic Designer', 'ML Engineer', 'Marketing Analyst', 'Product Manager', 'Software Developer', 'UI/UX Designer', 'Web Developer']
+Train score: 1.0000
+Test score: 0.9452
+
+Pipeline saved as pipeline.pkl (contains preprocessing + RF model)

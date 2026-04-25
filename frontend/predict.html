@@ -1,0 +1,607 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Edu2Job — Predict</title>
+
+  <style>
+    :root{
+      --glass: rgba(255,255,255,0.04);
+      --muted:#9aa6c2;
+      --primary-glow:#6c8bff33;
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      font-family:Poppins,Inter;
+      margin:0;
+      background:linear-gradient(120deg,#0c1526,#15223a);
+      color:#eaf4ff;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    .topbar{
+      max-width:1280px;
+      margin:14px auto;
+      padding:12px 22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+
+    .brand{font-weight:900;color:#cfe8ff;font-size:20px}
+    .links{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .links a{
+      color:#d7e8ff;
+      text-decoration:none;
+      font-weight:700;
+      transition:0.2s;
+    }
+    .links a:hover{
+      color:white;
+    }
+
+    .wrap{
+      max-width:1280px;
+      margin:18px auto;
+      padding:22px;
+      display:flex;
+      gap:28px;
+      align-items:flex-start;
+    }
+
+    .left{
+      width:300px;
+      background:var(--glass);
+      padding:22px;
+      border-radius:16px;
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.06);
+      box-shadow:0 12px 30px rgba(0,0,0,0.5);
+    }
+
+    .avatar{
+      width:120px;height:120px;border-radius:50%;
+      margin:6px auto;background:linear-gradient(135deg,#576bff,#8a3bff);
+      display:flex;align-items:center;justify-content:center;font-size:48px;color:white;
+      box-shadow:0 12px 40px rgba(82,90,255,0.25);
+    }
+
+    .meta{text-align:center;margin-top:12px}
+    .meta h3{margin:6px 0 0 0;font-size:20px}
+    .meta p{margin:4px 0;font-size:13px;color:var(--muted)}
+    .quick{margin-top:18px;background:rgba(255,255,255,0.02);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .quick p{margin:8px 0;font-weight:700;color:#dff7ff;display:flex;justify-content:space-between;align-items:center}
+    .left-buttons{display:flex;gap:8px;margin-top:14px;flex-direction:column}
+    .left-buttons button{background:transparent;color:#cfe8ff;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px;cursor:pointer;font-weight:800}
+    .left-buttons button:hover{transform:translateY(-3px);box-shadow:0 6px 20px var(--primary-glow)}
+
+    .sidebar-nav{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    .sidebar-nav .nav-item{display:block;padding:10px;border-radius:10px;text-align:center;background:transparent;border:1px solid rgba(255,255,255,0.04);color:#cfe8ff;text-decoration:none;font-weight:800}
+    .sidebar-nav .nav-item:hover{background:var(--primary);color:#001}
+
+    .right{
+      flex:1;
+      padding:28px;
+      border-radius:18px;
+      background:rgba(255,255,255,0.06);
+      backdrop-filter:blur(10px);
+      box-shadow:0 12px 30px rgba(0,0,0,0.5);
+    }
+
+    .predict-layout{
+      display:grid;
+      gap:22px;
+      margin-top:14px;
+    }
+
+    .section-card{
+      background:rgba(8,18,35,0.6);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px;
+      padding:26px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.32);
+    }
+
+    .section-title{
+      margin:0 0 16px;
+      color:#bcd6ff;
+      font-size:1rem;
+      font-weight:700;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      column-gap:20px;
+      row-gap:20px;
+    }
+
+    .form-group{
+      margin-bottom:20px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:12px;
+      padding:14px;
+      min-width:0;
+    }
+
+    .form-group.full{
+      grid-column:1 / 3;
+    }
+
+    label{
+      display:block;
+      margin:0 0 8px;
+      font-weight:600;
+    }
+    input,select{
+      width:100%;
+      padding:11px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.08);
+      color:#fff;
+      outline:none;
+    }
+
+    input[type="file"]{
+      padding:8px;
+      background:rgba(255,255,255,0.03);
+      border:1px dashed rgba(255,255,255,0.25);
+      color:#dfe9ff;
+    }
+
+    .helper{
+      margin-top:8px;
+      font-size:12px;
+      color:#a9badc;
+    }
+
+    /* 🔥 FIXED: Dropdown Options (NO WHITE BACKGROUND) */
+    select option{
+      background:#111827;   /* dark */
+      color:#fff;           /* white text */
+    }
+    select option:hover{
+      background:#1f2937;
+      color:#fff;
+    }
+
+    .skill-chip{
+      padding:8px 10px;
+      border-radius:10px;
+      background:#111827;
+      color:#fff;
+      border:none;
+      cursor:pointer;
+    }
+    .skill-chip:hover{
+      opacity:0.7;
+    }
+    .skill-tag{
+      display:inline-block;
+      background:#7a9dff;
+      color:#000;
+      padding:6px 10px;
+      border-radius:12px;
+      margin:6px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button.primary{
+      margin-top:28px;
+      padding:12px;
+      border-radius:10px;
+      border:none;
+      background:linear-gradient(90deg,#7a9dff,#b07bff);
+      color:#000;
+      font-weight:800;
+      cursor:pointer;
+      width:100%;
+    }
+
+    .skills-chip-wrap{
+      display:flex;
+      flex-wrap:wrap;
+      gap:11px;
+    }
+
+    .selected-skills-box{
+      margin-top:12px;
+      min-height:48px;
+      padding:8px;
+      border:1px dashed rgba(255,255,255,0.2);
+      border-radius:10px;
+      background:rgba(6,12,24,0.35);
+    }
+
+    .btn-secondary{
+      margin-top:10px;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.2);
+      background:#111827;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      width:100%;
+    }
+
+    @media (max-width:900px){
+      .wrap{flex-direction:column;padding:12px}
+      .left{width:100%}
+      .right{width:100%;padding:20px}
+      .section-card{padding:22px;}
+      .form-grid{grid-template-columns:1fr;column-gap:0;row-gap:18px;}
+      .form-group{margin-bottom:18px;}
+      .form-group.full{grid-column:auto;}
+    }
+    
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="brand">Edu2Job</div>
+    <div class="links" role="navigation" aria-label="main links">
+      <a href="dashboard.html">Home</a>
+      <a href="profile.html">Profile</a>
+      <a href="predict.html">Predict</a>
+      <a href="history.html">History</a>
+      <a href="#" id="logoutLink">Logout</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="left" aria-hidden="false">
+      <div class="avatar">🎯</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" href="predict.html">Predict</a>
+        <a class="nav-item" href="profile.html">Profile</a>
+        <a class="nav-item" href="dashboard.html">Analyze</a>
+      </div>
+      <div class="meta">
+        <h3 id="leftName">Prediction Panel</h3>
+        <p id="leftEmail">career@edu2job.ai</p>
+      </div>
+
+      <div class="quick" aria-live="polite" aria-atomic="true">
+        <p>Skills <span id="skillCount">0</span></p>
+        <p>Experience <span id="expCount">0</span></p>
+        <p>Certification <span id="certCount">0</span></p>
+      </div>
+
+      <div class="left-buttons" role="toolbar">
+        <button id="btnJumpInputs" title="Go to input section">📘 Input Fields</button>
+        <button id="btnJumpSkills" title="Go to skills section">🧠 Skills Section</button>
+      </div>
+    </div>
+
+    <div class="right" id="rightPanel">
+
+    <h2>Predict Your Job Role</h2>
+
+    <div class="predict-layout">
+      <div class="section-card">
+        <p class="section-title">Academic & Professional Inputs</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>CGPA</label>
+            <input id="CGPA" type="number" step="0.01" placeholder="8.5">
+          </div>
+
+          <div class="form-group">
+            <label>Certification</label>
+            <select id="Certification">
+              <option value="">Select Certification</option>
+              <option>HackerRank SQL</option>
+              <option>HackerRank Problem Solving</option>
+              <option>AWS</option><option>Azure</option>
+              <option>Google Cloud</option>
+              <option>Python Certification</option>
+              <option>Microsoft Azure Fundamentals (AZ-900)</option>
+              <option>AWS Certified Cloud Practitioner</option>
+              <option>AWS Certified Solutions Architect - Associate</option>
+              <option>Google Associate Cloud Engineer</option>
+              <option>Oracle Java SE</option>
+              <option>Meta Front-End Developer</option>
+              <option>Meta Back-End Developer</option>
+              <option>IBM Data Science Professional Certificate</option>
+              <option>TensorFlow Developer Certificate</option>
+              <option>Red Hat Certified System Administrator</option>
+              <option>Cisco CCNA</option>
+              <option>CompTIA Security+</option>
+              <option>CEH (Certified Ethical Hacker)</option>
+              <option>Kubernetes CKA</option>
+              <option>Salesforce Administrator</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Degree</label>
+            <select id="Degree">
+              <option value="">Select Degree</option>
+              <option>B.Tech</option>
+              <option>B.E</option>
+              <option>B.Sc</option>
+              <option>BCA</option>
+              <option>BBA</option>
+              <option>B.Com</option>
+              <option>M.Tech</option>
+              <option>M.E</option>
+              <option>M.Sc</option>
+              <option>MCA</option>
+              <option>MBA</option>
+              <option>PhD</option>
+              <option>Diploma</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Years of Experience</label>
+            <input id="Years" type="number" step="0.1" placeholder="2">
+          </div>
+
+          <div class="form-group">
+            <label>Major</label>
+            <select id="Major">
+              <option value="">Select Major</option>
+              <option>Computer Science</option>
+              <option>Information Technology</option>
+              <option>Electronics</option>
+              <option>AI & ML</option>
+              <option>Data Science</option>
+              <option>Electronics & Communication</option>
+              <option>Electrical Engineering</option>
+              <option>Mechanical Engineering</option>
+              <option>Civil Engineering</option>
+              <option>Chemical Engineering</option>
+              <option>Biotechnology</option>
+              <option>Mathematics</option>
+              <option>Statistics</option>
+              <option>Physics</option>
+              <option>Business Administration</option>
+              <option>Commerce</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Specialization</label>
+            <select id="Specialization">
+              <option value="">Select Specialization</option>
+              <option>Frontend</option>
+              <option>Backend</option>
+              <option>Full Stack</option>
+              <option>DevOps</option>
+              <option>AI</option>
+              <option>ML</option>
+              <option>Cloud</option>
+              <option>Data Engineering</option>
+              <option>Data Analytics</option>
+              <option>Cyber Security</option>
+              <option>UI/UX</option>
+              <option>Mobile Development</option>
+              <option>QA / Testing</option>
+              <option>Embedded Systems</option>
+              <option>Networking</option>
+              <option>Blockchain</option>
+              <option>IoT</option>
+              <option>Database Administration</option>
+              <option>Product Management</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="form-group full">
+            <label>Preferred Industry</label>
+            <select id="PreferredIndustry">
+              <option value="">Select Industry</option>
+              <option>Product-based</option><option>Service-based</option>
+              <option>Startup</option><option>Research</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <p class="section-title">Skills & Preferences</p>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Upload Resume (optional)</label>
+            <input id="ResumeFile" type="file" accept=".pdf,.docx,.txt">
+            <p class="helper">Supported formats: PDF, DOCX, TXT (max 5MB). Resume text will be used during prediction.</p>
+          </div>
+
+          <div class="form-group full">
+            <label>Skills</label>
+            <div class="skills-chip-wrap">
+              <button class="skill-chip" data-skill="Python">Python</button>
+              <button class="skill-chip" data-skill="Java">Java</button>
+              <button class="skill-chip" data-skill="JavaScript">JavaScript</button>
+              <button class="skill-chip" data-skill="React">React</button>
+              <button class="skill-chip" data-skill="SQL">SQL</button>
+              <button class="skill-chip" data-skill="Django">Django</button>
+            </div>
+            <div id="selectedSkills" class="selected-skills-box"></div>
+          </div>
+
+          <div class="form-group full">
+            <label>Custom skills</label>
+            <input id="customSkills" placeholder="Flask, Docker">
+            <button id="addCustom" class="btn-secondary">Add custom skills</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="predictBtn" class="primary">Predict & Show Results</button>
+
+    </div>
+  </div>
+
+<script>
+const API = "/api/";
+const token = localStorage.getItem("token") || localStorage.getItem("access") || localStorage.getItem("access_token");
+const logoutLink = document.getElementById('logoutLink');
+const skillCount = document.getElementById('skillCount');
+const expCount = document.getElementById('expCount');
+const certCount = document.getElementById('certCount');
+
+if(!token){
+  alert("Login required");
+  window.location.href="login.html";
+}
+
+function logout(){
+  localStorage.clear();
+  sessionStorage.clear();
+  alert("Logged out");
+  window.location.href = "/";
+}
+
+logoutLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  logout();
+});
+
+function updateSidebarStats(){
+  const skills = Array.from(document.getElementById('selectedSkills').children).map(n => n.innerText);
+  skillCount.textContent = skills.length;
+  expCount.textContent = document.getElementById('Years').value || 0;
+  certCount.textContent = document.getElementById('Certification').value ? 1 : 0;
+}
+
+function addSkill(skill){
+  const box = document.getElementById('selectedSkills');
+  const exists = Array.from(box.children).some(c=>c.innerText === skill);
+  if(exists) return;
+  const tag = document.createElement('div');
+  tag.className = 'skill-tag';
+  tag.innerText = skill;
+  tag.title = "Click to remove";
+  tag.onclick = ()=> { tag.remove(); updateSidebarStats(); };
+  box.appendChild(tag);
+  updateSidebarStats();
+}
+
+document.querySelectorAll('.skill-chip').forEach(btn=>{
+  btn.addEventListener('click', ()=> addSkill(btn.dataset.skill));
+});
+
+document.getElementById('addCustom').addEventListener('click', ()=>{
+  const v = document.getElementById('customSkills').value.trim();
+  if(!v) return;
+  v.split(',').map(s=>s.trim()).filter(Boolean).forEach(addSkill);
+  document.getElementById('customSkills').value='';
+  updateSidebarStats();
+});
+
+document.getElementById('Years').addEventListener('input', updateSidebarStats);
+document.getElementById('Certification').addEventListener('change', updateSidebarStats);
+
+document.getElementById('btnJumpInputs').addEventListener('click', () => {
+  document.querySelector('.predict-layout .section-card').scrollIntoView({ behavior: 'smooth' });
+});
+
+document.getElementById('btnJumpSkills').addEventListener('click', () => {
+  const skillsSection = document.querySelectorAll('.predict-layout .section-card')[1];
+  if (skillsSection) skillsSection.scrollIntoView({ behavior: 'smooth' });
+});
+
+document.getElementById('predictBtn').addEventListener('click', async ()=>{
+  const skills = Array.from(document.getElementById('selectedSkills').children).map(n=>n.innerText);
+  const resumeFile = document.getElementById('ResumeFile').files[0];
+
+  if(!skills.length && !resumeFile){
+    alert("Please add at least one skill or upload a resume before predicting.");
+    return;
+  }
+
+  const payload = new FormData();
+  payload.append("CGPA", document.getElementById('CGPA').value || "");
+  payload.append("Years of Experience", document.getElementById('Years').value || "");
+  payload.append("Degree", document.getElementById('Degree').value || "");
+  payload.append("Major", document.getElementById('Major').value || "");
+  payload.append("Specialization", document.getElementById('Specialization').value || "");
+  payload.append("Certification", document.getElementById('Certification').value || "");
+  payload.append("Preferred Industry", document.getElementById('PreferredIndustry').value || "");
+  payload.append("Skills", skills.join(", "));
+  if (resumeFile) payload.append("resume", resumeFile);
+
+  const btn = document.getElementById('predictBtn');
+  btn.disabled = true;
+  btn.innerText = "Predicting...";
+
+  try{
+    const res = await fetch(API + "predict/", {
+      method:"POST",
+      headers:{
+        "Authorization":"Bearer "+token
+      },
+      body: payload
+    });
+
+    const data = await res.json();
+    if(!res.ok){
+      alert("Error: " + (data.error || data.detail || data.message || `Prediction failed (${res.status})`));
+      btn.disabled = false;
+      btn.innerText = "Predict & Show Results";
+      return;
+    }
+
+    sessionStorage.setItem('edu2job_prediction', JSON.stringify(data));
+    window.location.href="result.html";
+
+  }catch(e){
+    console.error(e);
+    alert("Server error: " + (e.message || e));
+  }finally{
+    btn.disabled = false;
+    btn.innerText = "Predict & Show Results";
+  }
+});
+
+// Auto-parse resume and add detected skills when user selects a file
+document.getElementById('ResumeFile').addEventListener('change', async (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const helper = document.querySelector('.helper');
+  helper.textContent = 'Parsing resume for skills...';
+  const fd = new FormData(); fd.append('resume', f);
+  try{
+    const r = await fetch(API + 'parse_resume/', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: fd
+    });
+    const j = await r.json();
+    if(!r.ok){
+      helper.textContent = j.error || 'Could not parse resume';
+      return;
+    }
+    const detected = j.skills || [];
+    if(detected.length){
+      detected.forEach(s=> addSkill(s));
+      helper.textContent = 'Detected skills added: ' + detected.slice(0,6).join(', ');
+    } else {
+      helper.textContent = 'No skills detected from resume.';
+    }
+  }catch(err){
+    console.error(err);
+    helper.textContent = 'Error parsing resume';
+  }
+});
+
+window.addEventListener('DOMContentLoaded', updateSidebarStats);
+</script>
+
+</body>
+</html>

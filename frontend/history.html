@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Edu2Job — History</title>
+
+<style>
+body{
+  font-family:Poppins,Inter;
+  background:linear-gradient(135deg,#0f1724,#1b2a44);
+  color:#eaf4ff;
+  margin:0;
+  padding-top:90px;
+}
+
+/* layout to match profile/predict pages */
+.wrap{
+  max-width:1280px;
+  margin:18px auto;
+  padding:22px;
+  display:flex;
+  gap:28px;
+  align-items:flex-start;
+}
+.left{
+  width:300px;
+  background:rgba(255,255,255,0.03);
+  padding:18px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.left .avatar{width:96px;height:96px;border-radius:50%;margin:6px auto;background:linear-gradient(135deg,#576bff,#8a3bff);display:flex;align-items:center;justify-content:center;font-size:40px}
+.left .meta{text-align:center;margin-top:12px}
+.left .meta h3{margin:6px 0 0 0;font-size:18px}
+.quick{margin-top:14px;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+.left-buttons{display:flex;gap:8px;margin-top:14px;flex-direction:column}
+.left-buttons button{background:transparent;color:#cfe8ff;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px;cursor:pointer;font-weight:700}
+
+.right{flex:1}
+
+/* NAVBAR */
+.navbar{
+  position:fixed;
+  top:0; left:0;
+  width:100%;
+  padding:16px 18px;
+  background:rgba(255,255,255,0.07);
+  backdrop-filter:blur(12px);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  z-index:10;
+  box-shadow:0 4px 18px rgba(0,0,0,0.4);
+}
+.navbar .logo{
+  font-size:22px;
+  font-weight:800;
+  color:#9ac0ff;
+}
+.nav-links a{
+  color:#bdd7ff;
+  margin-right:20px;
+  text-decoration:none;
+  font-weight:600;
+}
+.nav-links a:hover{color:white}
+
+/* CARD */
+.card{
+  background:rgba(255,255,255,0.05);
+  padding:26px;
+  border-radius:16px;
+  backdrop-filter:blur(10px);
+  max-width:1100px;
+  margin:auto;
+  box-shadow:0 10px 28px rgba(0,0,0,0.45);
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:16px;
+}
+th{
+  background:rgba(255,255,255,0.08);
+  padding:12px;
+  text-align:left;
+  font-weight:700;
+}
+td{
+  padding:12px;
+  vertical-align:top;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+tr:hover{
+  background:rgba(255,255,255,0.06);
+}
+
+/* SKILLS */
+.skill-badge{
+  display:inline-block;
+  background:#7a9dff;
+  color:#000;
+  padding:5px 10px;
+  border-radius:14px;
+  font-size:12px;
+  font-weight:800;
+  margin:4px 4px 0 0;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="logo">Edu2Job</div>
+  <div class="nav-links">
+    <a href="dashboard.html">Home</a>
+    <a href="profile.html">Profile</a>
+    <a href="predict.html">Predict</a>
+    <a href="history.html">History</a>
+    <a href="login.html" onclick="logout()">Logout</a>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="wrap">
+  <div class="left">
+    <div class="avatar">🎯</div>
+    <div class="meta">
+      <h3 id="leftName">Your History</h3>
+      <p id="leftEmail">career@edu2job.ai</p>
+    </div>
+
+    <div class="quick" aria-live="polite">
+      <p>Total <span id="histCount">0</span></p>
+      <p>Recent <span id="histRecent">0</span></p>
+    </div>
+
+    <div class="left-buttons">
+      <button onclick="location.href='dashboard.html'">Dashboard</button>
+      <button onclick="location.href='predict.html'">Predict</button>
+      <button onclick="location.href='profile.html'">Profile</button>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card">
+      <h2>Your Prediction History</h2>
+      <div id="list">Loading...</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const API = "/api/";
+const token = localStorage.getItem("token") || localStorage.getItem("access") || localStorage.getItem("access_token");
+
+if(!token){
+  alert("Login required");
+  window.location.href="login.html";
+}
+
+function logout(){
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = "/";
+}
+
+async function loadHistory(){
+  try{
+    const res = await fetch(API + "history/", {
+      headers:{ "Authorization":"Bearer " + token }
+    });
+
+    const data = await res.json().catch(() => []);
+
+    if(!res.ok){
+      const message = data && (data.detail || data.error);
+      document.getElementById("list").innerText = message ? `Error loading history: ${message}` : "Error loading history";
+      return;
+    }
+
+    if(!Array.isArray(data)){
+      document.getElementById("list").innerText = "History data format is invalid.";
+      return;
+    }
+
+    if(!data.length){
+      document.getElementById("list").innerHTML =
+        "<p style='color:#bbb'>No history yet.</p>";
+      return;
+    }
+
+    /* ----------------------------------------------------------
+       🔥 NEW LOGIC — Keep Only Latest 7 Records & Auto Delete Old
+    ------------------------------------------------------------*/
+
+    // 1️⃣ Sort records (latest first)
+    data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // 2️⃣ Slice latest 7 records
+    const latestSeven = data.slice(0, 7);
+
+    // 3️⃣ Delete older records if more than 7 exist
+    if (data.length > 7) {
+      const oldRecords = data.slice(7);
+
+      oldRecords.forEach(async (rec) => {
+        await fetch(API + "history/" + rec.id + "/", {
+          method: "DELETE",
+          headers: { "Authorization": "Bearer " + token }
+        });
+      });
+    }
+
+    /* ---------------------------------------------------------- */
+
+    let html = `
+      <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Input Details</th>
+          <th>Predicted Role</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    latestSeven.forEach(r=>{
+      const d = new Date(r.created_at).toLocaleString();
+      let i = {};
+      try{
+        i = JSON.parse(r.input_data || "{}");
+      }catch{
+        i = {};
+      }
+
+      let skills = "";
+      if(i.Skills){
+        i.Skills.split(",").forEach(s=>{
+          skills += `<span class="skill-badge">${s.trim()}</span>`;
+        });
+      }
+
+      html += `
+        <tr>
+          <td>${d}</td>
+          <td>
+            <b>CGPA:</b> ${i.CGPA}<br>
+            <b>Experience:</b> ${i["Years of Experience"]} yrs<br>
+            <b>Degree:</b> ${i.Degree}<br>
+            <b>Major:</b> ${i.Major}<br>
+            <b>Specialization:</b> ${i.Specialization}<br>
+            <b>Industry:</b> ${i["Preferred Industry"]}<br>
+            <b>Skills:</b><br>${skills}
+          </td>
+          <td><b>${r.predicted}</b></td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById("list").innerHTML = html;
+    // update left sidebar stats
+    try{
+      document.getElementById('histCount').innerText = data.length;
+      document.getElementById('histRecent').innerText = latestSeven.length;
+    }catch(e){}
+
+  }catch(err){
+    console.error(err);
+    document.getElementById("list").innerText = "Unable to load history: " + (err.message || err);
+  }
+}
+
+loadHistory();
+</script>
+
+</body>
+</html>
