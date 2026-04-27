@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: edu-job
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn edu2job.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: edu2job.settings
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: PYTHON_VERSION
+        value: 3.10.9
